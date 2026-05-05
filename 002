@@ -1,0 +1,429 @@
+q-7 --diff
+
+def power(base, exp, mod):
+    return pow(base, exp, mod)
+
+def get_prime():
+    while True:
+        P = int(input("Enter a prime number P: "))
+        is_prime = P > 1 and all(P % i != 0 for i in range(2, int(P**0.5) + 1))
+        if is_prime:
+            return P
+        print("Not a prime, try again.")
+
+def get_generator(P):
+    while True:
+        G = int(input(f"Enter generator G (between 1 and {P}): "))
+        if 1 < G < P:
+            return G
+        print("Invalid generator, try again.")
+
+def get_private_key(P):
+    while True:
+        key = int(input(f"Enter private key (between 1 and {P}): "))
+        if 1 < key < P:
+            return key
+        print("Invalid key, try again.")
+
+def diffie_hellman():
+    P = get_prime()
+    G = get_generator(P)
+    print(f"P = {P}, G = {G}")
+
+    key1 = get_private_key(P)
+    key2 = get_private_key(P)
+
+    pub1 = power(G, key1, P)
+    pub2 = power(G, key2, P)
+    print(f"Public key 1: {pub1}")
+    print(f"Public key 2: {pub2}")
+
+    secret1 = power(pub2, key1, P)
+    secret2 = power(pub1, key2, P)
+    print(f"Secret 1: {secret1}")
+    print(f"Secret 2: {secret2}")
+
+    if secret1 == secret2:
+        print(f"Shared secret key = {secret1}")
+    else:
+        print("Keys don't match.")
+
+if __name__ == "__main__":
+    diffie_hellman()
+q-7 --diff
+================================================================================================================================================================
+8 --rc4
+
+def key_scheduling(key):
+    s = list(range(256))
+    j = 0
+    for i in range(256):
+        j = (j + s[i] + key[i % len(key)]) % 256
+        s[i], s[j] = s[j], s[i]
+    return s
+
+def stream_generation(s):
+    i, j = 0, 0
+    while True:
+        i = (i + 1) % 256
+        j = (j + s[i]) % 256
+        s[i], s[j] = s[j], s[i]
+        yield s[(s[i] + s[j]) % 256]
+
+def encrypt(text, key):
+    text_bytes = [ord(c) for c in text]
+    key_bytes = [ord(c) for c in key]
+    s = key_scheduling(key_bytes)
+    key_stream = stream_generation(s)
+    ciphertext = ""
+    for byte in text_bytes:
+        ciphertext += format(byte ^ next(key_stream), '02X')
+    return ciphertext
+
+def decrypt(ciphertext, key):
+    cipher_bytes = [int(ciphertext[i:i+2], 16) for i in range(0, len(ciphertext), 2)]
+    key_bytes = [ord(c) for c in key]
+    s = key_scheduling(key_bytes)
+    key_stream = stream_generation(s)
+    plaintext = ""
+    for byte in cipher_bytes:
+        plaintext += chr(byte ^ next(key_stream))
+    return plaintext
+
+if __name__ == '__main__':
+    choice = input("Enter E to encrypt or D to decrypt: ").upper()
+    if choice == 'E':
+        text = input("Enter text: ")
+        key = input("Enter key: ")
+        print("Ciphertext:", encrypt(text, key))
+    elif choice == 'D':
+        cipher = input("Enter ciphertext: ")
+        key = input("Enter key: ")
+        print("Plaintext:", decrypt(cipher, key))
+    else:
+        print("Invalid choice.")
+
+8 --rc4
+================================================================================================================================================================
+q-11 vige
+
+def get_shift(key, index):
+    key_char = key[index % len(key)]
+    return ord(key_char) - ord('A')
+
+def vigenere_encrypt(plaintext, key):
+    plaintext = plaintext.upper()
+    key = key.upper()
+    ciphertext = ""
+    key_index = 0
+
+    for char in plaintext:
+        if char.isalpha():
+            shift = get_shift(key, key_index)
+            pos = ord(char) - ord('A')
+            new_pos = (pos + shift) % 26
+            ciphertext += chr(new_pos + ord('A'))
+            key_index += 1
+        else:
+            ciphertext += char
+    return ciphertext
+
+def vigenere_decrypt(ciphertext, key):
+    ciphertext = ciphertext.upper()
+    key = key.upper()
+    plaintext = ""
+    key_index = 0
+
+    for char in ciphertext:
+        if char.isalpha():
+            shift = get_shift(key, key_index)
+            pos = ord(char) - ord('A')
+            new_pos = (pos - shift + 26) % 26
+            plaintext += chr(new_pos + ord('A'))
+            key_index += 1
+        else:
+            plaintext += char
+    return plaintext
+
+plaintext = input("Enter text: ")
+key = input("Enter key: ")
+
+ciphertext = vigenere_encrypt(plaintext, key)
+decrypted = vigenere_decrypt(ciphertext, key)
+
+print("Original:", plaintext.upper())
+print("Encrypted:", ciphertext)
+print("Decrypted:", decrypted)
+
+q-11  vige
+================================================================================================================================================================
+q-10 sha
+import hashlib
+
+def sha1(message):
+    hasher = hashlib.sha1()
+    hasher.update(message.encode('utf-8'))
+    return hasher.hexdigest()
+
+message = input("Enter text: ")
+result = sha1(message)
+
+print("Text:", message)
+print("SHA-1 hash:", result)
+
+ q-10 sha
+================================================================================================================================================================
+ q-6 rsa
+import random
+import math
+
+def is_prime(n):
+    for i in range(2, int(math.sqrt(n)) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+def mod_inverse(e, phi):
+    for d in range(2, phi):
+        if (d * e) % phi == 1:
+            return d
+
+p = int(input("Enter first prime: "))
+q = int(input("Enter second prime: "))
+
+if not (is_prime(p) and is_prime(q)):
+    print("Invalid prime numbers")
+    exit()
+
+n = p * q
+phi = (p - 1) * (q - 1)
+
+for i in range(2, phi):
+    if math.gcd(i, phi) == 1:
+        e = i
+        break
+
+d = mod_inverse(e, phi)
+
+print("Public Key:", (e, n))
+print("Private Key:", (d, n))
+
+m = int(input("Enter message (< n): "))
+
+c = pow(m, e, n)
+print("Encrypted Message:", c)
+
+print("Decrypted Message:", pow(c, d, n))
+q-6 rsa
+================================================================================================================================================================
+rails -6
+def encrypt(text, rails):
+    fence = [""] * rails
+    row, step = 0, 1
+
+    for ch in text:
+        fence[row] += ch
+
+        if row == 0:
+            step = 1
+        elif row == rails - 1:
+            step = -1
+
+        row += step
+
+    return "".join(fence)
+
+def decrypt(cipher, rails):
+    n = len(cipher)
+    
+    # Step 1: create pattern (which row each char belongs to)
+    pattern = [0] * n
+    row, step = 0, 1
+
+    for i in range(n):
+        pattern[i] = row
+
+        if row == 0:
+            step = 1
+        elif row == rails - 1:
+            step = -1
+
+        row += step
+
+    # Step 2: fill characters back
+    result = [""] * n
+    index = 0
+
+    for r in range(rails):
+        for i in range(n):
+            if pattern[i] == r:
+                result[i] = cipher[index]
+                index += 1
+
+    return "".join(result)
+
+
+# 🔥 Example
+text = "HELLOWORLD"
+rails = 3
+
+encrypted = encrypt(text, rails)
+decrypted = decrypt(encrypted, rails)
+
+print("Encrypted:", encrypted)
+print("Decrypted:", decrypted)
+
+rails -6
+================================================================================================================================================================
+hill -3
+===
+KEY=[[3,3],[2,5]]
+
+def letter_to_num(ch):
+    return ord(ch)-65
+
+def num_to_letter(n):
+    return chr(n+65)
+
+def mod_inverse(a,m=26):
+    for i in range(1,m):
+        if (a*i)%m==1:
+            return i
+    return None
+
+def encrypt(text):
+    text=text.upper().replace(" ","")
+    if len(text)%2!=0:
+        text+="X"
+    result=""
+    for i in range(0,len(text),2):
+        a=letter_to_num(text[i])
+        b=letter_to_num(text[i+1])
+        c1=(KEY[0][0]*a+KEY[0][1]*b)%26
+        c2=(KEY[1][0]*a+KEY[1][1]*b)%26
+        result+=num_to_letter(c1)+num_to_letter(c2)
+    return result
+
+def get_inverse_key():
+    a,b=KEY[0]
+    c,d=KEY[1]
+    det=(a*d-b*c)%26
+    det_inv=mod_inverse(det)
+    return [[(d*det_inv)%26,(-b*det_inv)%26],[(-c*det_inv)%26,(a*det_inv)%26]]
+
+def decrypt(cipher):
+    inv=get_inverse_key()
+    result=""
+    for i in range(0,len(cipher),2):
+        a=letter_to_num(cipher[i])
+        b=letter_to_num(cipher[i+1])
+        p1=(inv[0][0]*a+inv[0][1]*b)%26
+        p2=(inv[1][0]*a+inv[1][1]*b)%26
+        result+=num_to_letter(p1)+num_to_letter(p2)
+    return result
+
+text=input("Enter text: ")
+cipher=encrypt(text)
+plain=decrypt(cipher)
+
+print("Encrypted:",cipher)
+print("Decrypted:",plain)
+=======================
+hill -3
+================================================================================================================================================================
+cearser -1
+
+def encrypt(text, shift):
+    result = ""
+    shift = shift % 26
+    for ch in text:
+        if ch.isupper():
+            result += chr((ord(ch) + shift - ord('A')) % 26 + ord('A'))
+        elif ch.islower():
+            result += chr((ord(ch) + shift - ord('a')) % 26 + ord('a'))
+        else:
+            result += ch
+    return result
+
+
+def decrypt(text, shift):
+    result = ""
+    shift = shift % 26
+    for ch in text:
+        if ch.isupper():
+            result += chr((ord(ch) - shift - ord('A') + 26) % 26 + ord('A'))
+        elif ch.islower():
+            result += chr((ord(ch) - shift - ord('a') + 26) % 26 + ord('a'))
+        else:
+            result += ch
+    return result
+
+print("1. Encrypt")
+print("2. Decrypt")
+choice = int(input("Enter choice: "))
+text = input("Enter the text: ")
+shift = int(input("Enter shift value: "))
+
+if choice == 1:
+    print("Encrypted Text:", encrypt(text, shift))
+elif choice == 2:
+    print("Decrypted Text:", decrypt(text, shift))
+else:
+    print("Invalid choice")
+
+cearser -1
+=========================================================================================================================================================
+affine -2
+
+def mod_inverse(a, m=26):
+    a = a % m
+    for x in range(1, m):
+        if (a * x) % m == 1:
+            return x
+    return -1
+
+
+def encrypt(text, a, b):
+    result = ""
+    for ch in text:
+        if ch.isalpha():
+            ch = ch.upper()
+            x = ord(ch) - ord('A')
+            enc = (a * x + b) % 26
+            result += chr(enc + ord('A'))
+        else:
+            result += ch
+    return result
+
+
+def decrypt(cipher, a, b):
+    result = ""
+    a_inv = mod_inverse(a)
+    if a_inv == -1:
+        return "Invalid key 'a'. No modular inverse."
+    for ch in cipher:
+        if ch.isalpha():
+            ch = ch.upper()
+            y = ord(ch) - ord('A')
+            dec = (a_inv * (y - b + 26)) % 26
+            result += chr(dec + ord('A'))
+        else:
+            result += ch
+    return result
+
+print("1. Encrypt")
+print("2. Decrypt")
+choice = int(input("Enter choice: "))
+
+text = input("Enter the text: ")
+a = int(input("Enter key a: "))
+b = int(input("Enter key b: "))
+
+if choice == 1:
+    print("Encrypted Text:", encrypt(text, a, b))
+elif choice == 2:
+    print("Decrypted Text:", decrypt(text, a, b))
+else:
+    print("Invalid choice")
+affine -2
+=================================================================================================================================================================
