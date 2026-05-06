@@ -427,3 +427,76 @@ else:
     print("Invalid choice")
 affine -2
 =================================================================================================================================================================
+code 9
+import math
+from hashlib import sha256
+
+# ── key helpers ──────────────────────────────
+def is_prime(n):
+    if n < 2: return False
+    for i in range(2, int(math.sqrt(n)) + 1):
+        if n % i == 0: return False
+    return True
+
+def mod_inverse(e, phi):
+    for d in range(2, phi):
+        if (d * e) % phi == 1:
+            return d
+
+# ── rsa core ─────────────────────────────────
+def encrypt(private_key, plaintext):
+    key, n = private_key
+    return [pow(ord(c), key, n) for c in plaintext]
+
+def decrypt(public_key, ciphertext):
+    key, n = public_key
+    return ''.join([chr(pow(c, key, n)) for c in ciphertext])
+
+# ── hash + verify ─────────────────────────────
+def hash_message(message):
+    return sha256(message.encode("UTF-8")).hexdigest()
+
+def verify(decrypted_hash, original_message):
+    fresh = hash_message(original_message)
+    print(f"\n  Received : {decrypted_hash}")
+    print(f"  Expected : {fresh}")
+    if decrypted_hash == fresh:
+        print("  ✅ Verification SUCCESSFUL")
+    else:
+        print("  ❌ Verification FAILED")
+
+# ── main ──────────────────────────────────────
+p = int(input("Enter first  prime (p) : "))
+q = int(input("Enter second prime (q) : "))
+
+if not (is_prime(p) and is_prime(q)):
+    print("Both must be prime!") ; exit()
+
+n   = p * q
+phi = (p-1) * (q-1)
+
+for i in range(2, phi):
+    if math.gcd(i, phi) == 1:
+        e = i ; break
+
+d = mod_inverse(e, phi)
+
+public  = (e, n)
+private = (d, n)
+print(f"\n  Public  Key : {public}")
+print(f"  Private Key : {private}")
+
+message   = input("\nEnter message to sign : ")
+hashed    = hash_message(message)
+print(f"\n  SHA-256 : {hashed}")
+
+encrypted = encrypt(private, hashed)
+print(f"\n--- Signed with private key ---")
+print(''.join(map(str, encrypted))[:40] + "...")
+
+decrypted = decrypt(public, encrypted)
+print(f"\n--- Verifying with public key ---")
+verify(decrypted, message)
+
+9
+=================================================================================================================================================================
