@@ -1,1 +1,584 @@
-
+Question 2: Design a LEX Code to count the number of lines, space, tab-meta character,
+and rest of characters in given Input pattern.
+%{
+#include<stdio.h>
+int t_line = 0, t_space = 0, t_metachar = 0, r_restchar = 0;
+%}
+%%
+[\n] {t_line++;}
+[' '] {t_space++;}
+[\t] {t_metachar++;}
+[^\n\t' '] {r_restchar++;}
+%%
+int main(){
+printf("Enter the string : ");
+yylex();
+printf("The total number of lines are : %d \n", t_line);
+printf("The total number of spaces are : %d \n", t_space);
+printf("The total number of tab-meta char are : %d \n", t_metachar);
+printf("The rest of the characters are : %d \n", r_restchar);
+return 0;
+} int yywrap(){
+return 1;
+}
+=====================================================================================================================================================
+Question 3: Design a LEX Code to identify and print valid identifier of C in given Input
+pattern.
+%{
+#include<stdio.h>
+%}
+%%
+^[_a-zA-Z][a-zA-Z0-9_]* {printf("This is a valid identifier");}
+.* {printf("This is not a valid identifier ");}
+%%
+int yywrap(){
+return 1;
+} int main(){
+printf("Enter your variable/string ");
+yylex();
+return 0;
+}
+=====================================================================================================================================================
+Question 4: Design a LEX Code to identify and print integer and float value in given Input
+pattern.
+%{
+#include<stdio.h>
+%}
+%%
+[0-9]+ {printf("This is a Integer number ");}
+[0-9]*[.][0-9]+ {printf("This is a Floating point number ");}
+.* {printf("Invalid Number");}
+%%
+int yywrap(){
+return 1;
+}
+int main(){
+printf("Enter a valid number ");
+yylex();
+return 0;
+}
+=====================================================================================================================================================
+Question 5: Design a LEX Code for Tokenizing (Identify and print OPERATORS,
+Seperators, KEYWORDS, and Identifiers) in the given input.
+%{
+#include<stdio.h>
+%}
+%%
+auto|break|case|char|const|continue|default|do|double|else|enum|extern|float|for|goto|if|int|long|
+register|return|short|signed|sizeof|static|struct|switch|typedef|union|unsigned|void|volatile|while
+{printf("%s is a keyword\n",yytext);}
+[a-zA-Z_][a-zA-Z0-9_]* {printf("%s is a identifier\n",yytext);}
+[,;(){}] {printf("%s is a seperator\n", yytext);}
+["+"|"-"|"/"|"*"|"="|"<"|">"] {printf("%s is a operator\n",yytext);}
+[0-9]+ {printf("%s is a constant\n",yytext);}
+. {}
+%%
+int main() {
+printf("Enter your program for tokenization : ");
+yylex();
+return 0;
+}
+int yywrap(){
+return 1;
+}
+=====================================================================================================================================================
+Question 6: Design a LEX Code to count and print the number of total characters, words,
+and white spaces in given ‘Input.txt’ file.
+%{
+#include<stdio.h>
+int t_characters = 0, t_whitespace = 0, t_words = 0;
+%}
+%%
+[" "\n\t] {t_whitespace++; t_characters++;}
+[a-zA-Z]+ {t_words++; t_characters += yyleng;}
+. {t_character++;}
+%%
+int main() {
+yyin = fopen("input.txt", "r");
+if(yyin == NULL) {
+printf("File could not be opened \n");
+return 1;
+}
+yylex();
+printf("The total number of words are : %d\n", t_words);
+printf("The total number of character are : %d\n", t_characters);
+printf("The total number of whitespaces are : %d\n", t_whitespaces);
+fclose(yyin);
+return 0;
+} int yywrap() {
+return 1;
+}
+Output :
+Input.txt file :
+=====================================================================================================================================================
+Question 7: Design a LEX Code to replace white spaces of ‘Input.txt’ file by a single blank
+character into ‘Output.txt’ file.
+%{
+#include<stdio.h>
+%}
+%%
+[\t\n]+ {fprintf(yyout, " ");}
+. {fprintf(yyout, "%s", yytext);}
+%%
+int main() {
+yyin = fopen("input.txt", "r");
+yyout = fopen("output.txt", "w");
+if(yyin == NULL || yyout == NULL) {
+printf("Error opening file \n");
+return 1;
+}
+yylex();
+fclose(yyin);
+fclose(yyout);
+return 0;
+} int yywrap() {
+return 1;
+}
+Output :
+Input.txt file :
+Output.txt file :
+=====================================================================================================================================================
+Question 8: Design a LEX Code to remove the comments from any C Program given at runtime
+and store into ‘out.c’ file.
+%{
+#include<stdio.h>
+%}
+%%
+"//".* {}
+"/*"(.|\n)*"*/" {}
+. {fprintf(yyout, "%s", yytext);}
+%%
+int main() {
+yyin = fopen("input.c", "r");
+yyout = fopen("out.c", "w");
+yylex();
+return 0;
+}
+int yywrap(){
+return 1;
+}
+Output :
+input.c file :
+out.c file :
+Question 9: Design a LEX Code to extract all html tags in the given HTML file at run time and
+store into Text file given at run time.
+%{
+#include<stdio.h>
+%}
+%%
+"<"[^>]*">" {fprintf(yyout, "%s", yytext);}
+. ;
+%%
+int main() {
+yyin = fopen("input.txt", "r");
+yyout = fopen("output.txt", "w");
+if(yyin == NULL || yyout == NULL){
+printf("Error opening file \n");
+return 0;
+}
+yylex();
+return 0;
+}
+int yywrap(){
+return 1;
+}
+Output :
+input.txt file :
+output.txt file:
+=====================================================================================================================================================
+Question 10: Design a LEX Code to recognize and print the following tokens:
+a) string
+b) keywords
+c) constants
+d) identifiers
+e) literals
+%{
+#include<stdio.h>
+%}
+%%
+\"[^\"\n]*\" { printf("%s is a STRING\n", yytext); }
+int|float|char|double|while|for|if|else|return|void|main|include { printf("%s is a KEYWORD\n",
+yytext); }
+[0-9]+(\.[0-9]+)? { printf("%s is a CONSTANT\n", yytext); }
+[a-zA-Z_][a-zA-Z0-9_]* { printf("%s is an IDENTIFIER\n", yytext); }
+\'[^\'\n]\' { printf("%s is a LITERAL\n", yytext); }
+[ \t\n]+ ;
+. { printf("%s is a SYMBOL\n", yytext); }
+%%
+int main() {
+printf("Enter input for tokenization:\n");
+yylex();
+return 0;
+}
+int yywrap() {
+return 1;
+}
+Output :
+=====================================================================================================================================================
+Question 11: Design a LEX Code to take check whether the given number is even or odd.
+%{
+#include<stdio.h>
+%}
+%%
+[0-9]*[0|2|4|6|8] {printf("Even number");}
+[0-9]*[1|3|5|7|9] {printf("Odd number");}
+.* {printf("Invalid number");}
+%%
+int yywrap(){
+return 1;
+}
+int main(){
+printf("Enter a number : ");
+yylex();
+return 0;
+}
+Output :
+=====================================================================================================================================================
+Question 12: Design a LEX Code to count number of vowels and consonants in a given pattern.
+%{
+#include<stdio.h>
+int vowels = 0;
+int consonants = 0;
+%}
+%%
+[aeiouAEIOU] {vowels++;}
+[b-df-hj-np-tv-zB-DF-HJ-NP-TV-Z] {consonants++;}
+%%
+int yywrap(){
+return 1;
+}
+int main(){
+printf("Enter a string : ");
+yylex();
+printf("The number of Vowels are : %d\n", vowels);
+printf("The number of Consonants are : %d\n", consonants);
+return 0;
+}
+Output :
+=====================================================================================================================================================
+Question 13 : Design a LEX Code to check for a valid E-mail Id.
+%{
+#include<stdio.h>
+%}
+%%
+[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+ {printf("Valid Email\n");}
+[ \t\n] ;
+.* {printf("Invalid email\n");}
+%%
+int yywrap(){
+return 1;
+}
+int main(){
+printf("Enter a email address : ");
+yylex();
+return 0;
+}
+Output :
+=====================================================================================================================================================
+Question 14 : Design a DFA in LEX Code which accepts all possible set of string containing
+even number of ‘a’ and even number of ‘b’ over input alphabet Σ = {a, b}..
+%{
+#include<stdio.h>
+%}
+%s B C D DEAD
+%%
+<INITIAL>a BEGIN B;
+<INITIAL>b BEGIN C;
+<INITIAL>[^ab\n] BEGIN DEAD;
+<INITIAL>\n BEGIN INITIAL; {printf("Accepted\n");}
+<B>a BEGIN INITIAL;
+<B>b BEGIN D;
+<B>[^ab\n] BEGIN DEAD;
+<B>\n BEGIN INITIAL; {printf("Rejected\n");}
+<C>a BEGIN D;
+<C>b BEGIN INITIAL;
+<C>[^ab\n] BEGIN DEAD;
+<C>\n BEGIN INITIAL; {printf("Rejected\n");}
+<D>a BEGIN C;
+<D>b BEGIN B;
+<D>[^ab\n] BEGIN DEAD;
+<D>\n BEGIN INITIAL; {printf("Rejected\n");}
+<DEAD>a BEGIN DEAD;
+<DEAD>b BEGIN DEAD;
+<DEAD>[^ab\n] BEGIN DEAD;
+<DEAD>\n BEGIN INITIAL; {printf("Invalid String\n");}
+%%
+int main(){
+printf("Enter the string : ");
+yylex();
+return 0;
+} int yywrap(){
+return 1;
+}
+Output :
+=====================================================================================================================================================
+Question 15 : Design a DFA in LEX Code to Identify and print Integer, Float Constants and
+Identifier.
+%{
+#include<stdio.h>
+%}
+%s A B C DEAD
+%%
+<INITIAL>[0-9]+ BEGIN A;
+<INITIAL>[0-9]*[.][0-9]+ BEGIN B;
+<INITIAL>[a-zA-Z_][a-zA-Z0-9_]* BEGIN C;
+<INITIAL>.*|^\n BEGIN DEAD;
+<INITIAL>\n BEGIN INITIAL; {printf("Empty String\n");}
+<A>^\n BEGIN DEAD;
+<A>\n BEGIN INITIAL; {printf("Integer Constant\n");}
+<B>^\n BEGIN DEAD;
+<B>\n BEGIN INITIAL; {printf("Floating Point\n");}
+<C>^\n BEGIN DEAD;
+<C>\n BEGIN INITIAL; {printf("Identifier\n");}
+<DEAD>^\n BEGIN DEAD;
+<DEAD>\n BEGIN INITIAL; {printf("Invalid String\n");}
+%%
+int main(){
+printf("Enter the string :");
+yylex();
+return 0;
+}
+int yywrap(){
+return 1;
+}
+Output :
+=====================================================================================================================================================
+Question 16 : Design a DFA in LEX Code over Σ = {a, b} which contains set of all possible
+strings where every string starts with a and ends with b.
+%{
+#include<stdio.h>
+%}
+%s B C D DEAD
+%%
+<INITIAL>a BEGIN B;
+<INITIAL>b BEGIN D;
+<INITIAL>[^ab\n] BEGIN DEAD;
+<INITIAL>\n BEGIN INITIAL; {printf("Rejected\n");}
+<B>a BEGIN B;
+<B>b BEGIN C;
+<B>[^ab\n] BEGIN DEAD;
+<B>\n BEGIN INITIAL; {printf("Rejected\n");}
+<C>a BEGIN B;
+<C>b BEGIN C;
+<C>[^ab\n] BEGIN DEAD;
+<C>\n BEGIN INITIAL; {printf("Accepted\n");}
+<D>a BEGIN D;
+<D>b BEGIN D;
+<D>[^ab\n] BEGIN DEAD;
+<D>\n BEGIN INITIAL; {printf("Rejected\n");}
+<DEAD>a BEGIN DEAD;
+<DEAD>b BEGIN DEAD;
+<DEAD>[^ab\n] BEGIN DEAD;
+<DEAD>\n BEGIN INITIAL; {printf("Invalid String\n");}
+%%
+int main(){
+printf("Enter the string : ");
+yylex();
+return 0;
+} int yywrap(){
+return 1;
+}
+Output :
+=====================================================================================================================================================
+Question 17 : Design YACC / LEX code to recognize valid arithmetic expression with operators +,
+-, * and /
+file : prog17_input.l
+%{
+#include"y.tab.h"
+%}
+%%
+[0-9]+ {yylval = atoi(yytext); return NUMBER;}
+[ \t];
+\n {return '\n';}
+[+] {return '+';}
+[-] {return '-';}
+[*] {return '*';}
+[/] {return '/';}
+. {printf("Invalid input : %s",yytext); return 0;}
+%%
+int yywrap(){
+return 1;
+}
+file : prog17_parse.y
+%{
+#include<stdio.h>
+#include<stdlib.h>
+void yyerror(const char *s);
+int yylex();
+%}
+%token NUMBER;
+%%
+stmt: expr '\n' {printf("Valid Expression\n");}
+;
+expr: expr '+' term
+| expr '-' term
+| term
+;
+term: term '*' factor
+| term '/' factor
+| factor
+;
+factor: NUMBER
+;
+%%
+void yyerror(const char *s){
+printf("Syntax error : Invalid Arithmetic Expression");
+}
+int main(){
+printf("Enter the Expression : ");
+yyparse();
+return 0;
+}
+Output :
+=====================================================================================================================================================
+Question 18: Design YACC / LEX code to evaluate arithmetic expression involving operators +, -,
+* and / without operator precedence grammar and with operator precedence grammar.
+file : prog18_input.l
+%{
+#include"y.tab.h"
+%}
+%%
+[0-9]+ {yylval = atoi(yytext); return NUMBER;}
+[ \t];
+\n {return '\n';}
+[+] {return '+';}
+[-] {return '-';}
+[*] {return '*';}
+[/] {return '/';}
+. {printf("Invalid input : %s",yytext); return 0;}
+%%
+int yywrap(){
+return 1;
+}
+file : prog18_parse.y
+%{
+#include<stdio.h>
+#include<stdlib.h>
+void yyerror(const char *s);
+int yylex();
+%}
+%token NUMBER
+%%
+stmt: expr'\n' {printf("Output = %d\n",$$);}
+;
+expr: expr '+' term {$$ = $1 + $3;}
+| expr '-' term {$$ = $1 - $3;}
+| term
+;
+term: term '*' factor {$$ = $1 * $3;}
+| term '/' factor {$$ = $1 / $3;}
+| factor
+;
+factor: NUMBER {$$ = $1;}
+;
+%%
+void yyerror(const char *s){
+printf("Error : Invalid Syntax \n ");
+}
+int main(){
+printf("Enter the expression : ");
+yyparse();
+return 0;
+}
+Output :
+=====================================================================================================================================================
+Question 19: Design YACC / LEX code that translates INFIX Expression to POSTFIX Expression.
+file : prog19_input.l
+%{
+#include"y.tab.h"
+%}
+%%
+[0-9]+ {yylval = atoi(yytext); return NUMBER;}
+[ \t];
+\n {return '\n';}
+[+] {return '+';}
+[-] {return '-';}
+[*] {return '*';}
+[/] {return '/';}
+. {printf("Invalid input : %s",yytext); return 0;}
+%%
+int yywrap(){
+return 1;
+}
+file : prog19_parse.y
+%{
+#include<stdio.h>
+#include<stdlib.h>
+void yyerror(const char *s);
+int yylex();
+%}
+%token NUMBER
+%%
+stmt: expr '\n' {printf("\n");}
+;
+expr: expr '+' term {printf("+");}
+| expr '-' term {printf("-");}
+| term {printf(" ");}
+;
+term: term '*' factor {printf("*");}
+| term '/' factor {printf("/");}
+| factor {printf(" ");}
+;
+factor: NUMBER {printf("%d",$1);}
+;
+%%
+void yyerror(const char *s){
+printf("Error : Invalid Expression \n");
+}
+int main(){
+printf("Enter the expression : ");
+yyparse();
+return 0;
+}
+Output :
+=====================================================================================================================================================
+Question 20: Design a Desk Calculator using YACC / LEX code.
+file : prog20_input.l
+%{
+#include"y.tab.h"
+%}
+%%
+[0-9]+ {yylval = atoi(yytext); return NUMBER;}
+[ \t];
+\n {return '\n';}
+[+] {return '+';}
+[-] {return '-';}
+[*] {return '*';}
+[/] {return '/';}
+. {printf("Invalid input : %s",yytext); return 0;}
+%%
+int yywrap(){
+return 1;
+}
+file : prog20_parse.y
+%{
+#include<stdio.h>
+#include<stdlib.h>
+void yyerror(const char *s);
+int yylex();
+%}
+%token NUMBER
+%%
+stmt: expr'\n' {printf("Output = %d\n",$$);}
+;
+expr: expr '+' term {$$ = $1 + $3;}
+| expr '-' term {$$ = $1 - $3;}
+| term
+;
+term: term '*' factor {$$ = $1 * $3;}
+| term '/' factor {$$ = $1 / $3;}
+| factor
+;
+factor: NUMBER {$$ = $1;}
+;
+%%
+void yyerror(const char *s){
+printf("Error : Invalid Syntax \n ");
+}
+int main(){
+printf("Enter the expression : ");
+yyparse();
+return 0;
+}
+Output :
+=====================================================================================================================================================
